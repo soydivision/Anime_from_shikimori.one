@@ -1,0 +1,2 @@
+mvn -Dselenide.headless=true clean test
+mvn clean test
