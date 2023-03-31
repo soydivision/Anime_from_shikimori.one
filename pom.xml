@@ -29,11 +29,12 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.codeborne/selenide -->
-        <dependency>
-            <groupId>com.codeborne</groupId>
-            <artifactId>selenide</artifactId>
-            <version>6.7.4</version>
-        </dependency>
+       <!-- https://mvnrepository.com/artifact/com.codeborne/selenide -->
+		<dependency>
+			<groupId>com.codeborne</groupId>
+			<artifactId>selenide</artifactId>
+			<version>6.12.4</version>
+		</dependency>
 
         <dependency>
             <groupId>com.codeborne</groupId>
@@ -41,10 +42,11 @@
             <version>6.7.4</version>
             <scope>test</scope>
         </dependency>
+		
         <dependency>
             <groupId>com.codeborne</groupId>
             <artifactId>selenide-proxy</artifactId>
-            <version>6.7.4</version>
+            <version>6.12.4</version>
         </dependency>
     </dependencies>
 
