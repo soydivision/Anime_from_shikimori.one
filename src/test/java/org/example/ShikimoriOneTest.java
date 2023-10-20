@@ -20,14 +20,15 @@ public class ShikimoriOneTest {
     ElementsCollection animeList = Selenide.elements(Selectors.byXpath("//span[@class='name-en']"));
     ElementsCollection animeCoverLinks = Selenide.elements(Selectors.byXpath("//article//img"));
 
+    int NUMBER_OF_PAGINATION_PAGES = 214;
 
     @Test
     public void openShiki() throws IOException {
         Configuration.proxyEnabled = true;
         Configuration.fileDownload = PROXY;
         open(BASE_URL);
-        for (int i = 0; i < 13; i++) {
-            parsePage();
+        for (int i = 0; i < NUMBER_OF_PAGINATION_PAGES; i++) {
+            parsePageWithPageNumber(i);
             clickForward();
         }
     }
@@ -36,11 +37,62 @@ public class ShikimoriOneTest {
         nextPageButton.click();
     }
 
+    public void parsePageWithPageNumber(int pageNumber) throws IOException {
+        String currentURL = WebDriverRunner.getWebDriver().getCurrentUrl();
+        appendToLogTxtFile(currentURL);
+        appendToLogTxtFile("Number of anime found on page: " + animeList.size());
+        appendToLogTxtFile("Number of anime cover links found on page: " + animeCoverLinks.size());
+        checkListSizeOnGiveURL(animeList, currentURL);
+        checkListSizeOnGiveURL(animeCoverLinks, currentURL);
+        int tempPageNumber = pageNumber + 1;
+        createAndAppendAnimeListToFile(String.valueOf(tempPageNumber));
+        saveAnimeCovers(pageNumber + 1);
+        //pageBottom.scrollIntoView(false);
+    }
+
+    public void createAndAppendAnimeListToFile(String fileName) throws FileNotFoundException, UnsupportedEncodingException {
+        for (int i = 0; i < animeList.size(); i++) {
+            System.out.println(animeList.get(i).innerText());
+            appendToTxtFile(animeList.get(i).innerText(), fileName);
+        }
+    }
+
+    public void appendToTxtFile(String txt, String fileName) throws FileNotFoundException, UnsupportedEncodingException {
+        try {
+            String filename = "test-result/list Of Anime For Page" + fileName + ".txt";
+            FileWriter fw = new FileWriter(filename, true); //the true will append the new data
+            fw.write(txt);
+            fw.write("\n");
+            fw.close();
+        } catch (IOException ioe) {
+            System.err.println("IOException: " + ioe.getMessage());
+        }
+    }
+
+    public void checkListSizeOnGiveURL(ElementsCollection elements, String url) throws FileNotFoundException, UnsupportedEncodingException {
+        if (elements.size() != 20) {
+            appendToLogTxtFile("WARNING: expected  number on page:" + url + " didn't match");
+        }
+    }
+
+    private void saveAnimeCovers(int pageNumber) throws IOException {
+        for (int k = 0; k < animeCoverLinks.size(); k++) {
+            String coverFileName = animeCoverLinks.get(k).getAttribute("alt").replaceAll("[\\\\/:*?\"<>|]", "");
+            var src = animeCoverLinks.get(k).getAttribute("src");
+            var imgFile = new File("test-result/covers/" + pageNumber + "/" + coverFileName + ".jpeg");
+            copyURLToFile(new URL(src), imgFile);
+        }
+    }
+
     public void parsePage() throws IOException {
         String currentURL = WebDriverRunner.getWebDriver().getCurrentUrl();
-        appendToTxtFile(currentURL);
-        callScrollDownTimes(25);
-        appendToTxtFile("Number of anime found on page: " + animeList.size());
+        appendToLogTxtFile(currentURL);
+        //callScrollDownTimes(25);
+        appendToLogTxtFile("Number of anime found on page: " + animeList.size());
+        if (animeList.size() != 20) {
+            appendToLogTxtFile("WARNING: expected files number on page:" + currentURL + " didn't match");
+        }
+        appendToLogTxtFile("Number of anime cover links found on page: " + animeCoverLinks.size());
         appendAnimeListToFile();
         saveAnimeCovers();
         pageBottom.scrollIntoView(false);
@@ -48,9 +100,9 @@ public class ShikimoriOneTest {
 
     private void saveAnimeCovers() throws IOException {
         for (int i = 0; i < animeCoverLinks.size(); i++) {
-            String name = animeCoverLinks.get(i).getAttribute("alt").replaceAll("[\\\\/:*?\"<>|]", "");
+            String coverFileName = animeCoverLinks.get(i).getAttribute("alt").replaceAll("[\\\\/:*?\"<>|]", "");
             var src = animeCoverLinks.get(i).getAttribute("src");
-            var imgFile = new File("test-result/covers/" + name + ".jpg");
+            var imgFile = new File("test-result/covers/" + coverFileName + ".jpeg");
             copyURLToFile(new URL(src), imgFile);
         }
     }
@@ -69,16 +121,28 @@ public class ShikimoriOneTest {
     }
 
     public void scrollDown() {
-        element.sendKeys(Keys.PAGE_DOWN);
-        sleep(300);
+        element.sendKeys(Keys.END);
+        sleep(2000);
         element.sendKeys(Keys.PAGE_UP);
-        sleep(300);
+        sleep(1000);
         element.sendKeys(Keys.PAGE_DOWN);
     }
 
     public void appendToTxtFile(String txt) throws FileNotFoundException, UnsupportedEncodingException {
         try {
             String filename = "test-result/anime_list.txt";
+            FileWriter fw = new FileWriter(filename, true); //the true will append the new data
+            fw.write(txt);
+            fw.write("\n");
+            fw.close();
+        } catch (IOException ioe) {
+            System.err.println("IOException: " + ioe.getMessage());
+        }
+    }
+
+    public void appendToLogTxtFile(String txt) throws FileNotFoundException, UnsupportedEncodingException {
+        try {
+            String filename = "test-result/log.txt";
             FileWriter fw = new FileWriter(filename, true); //the true will append the new data
             fw.write(txt);
             fw.write("\n");
